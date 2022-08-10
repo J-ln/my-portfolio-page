@@ -1,48 +1,34 @@
-import { useMemo, useCallback } from 'react'
-import { Canvas } from '@react-three/fiber'
-import { OrbitControls, Point, Points } from '@react-three/drei'
+import * as TRHEE from "three"
+import { Canvas, useFrame, useThree } from '@react-three/fiber'
+import { OrthographicCamera, Stars } from '@react-three/drei'
 import { BackgroundContainer } from './Background.element'
+import { Suspense, useEffect, useRef } from 'react'
 
+const Camera = () => {
+    const controlRef = useRef(null)
 
+    useEffect(() => {
+        console.log(controlRef.current)
+    }, [])
 
-
+    useFrame(() => {
+        controlRef.current.setViewOffset({ x: window.scrollX, y: window.scrollY })
+    })
+    return (<OrthographicCamera ref={controlRef} />)
+}
 
 const Background = () => {
-    let count = 500;
-    const sep = 3
-    let t = 0;
-    let f = 0.002;
-    let a = 3;
-    const graph = useCallback((x, z) => {
-        return Math.sin(f * (x ** 2 + z ** 2 + t)) * a;
-    }, [t, f, a])
 
 
-    let positions = useMemo(() => {
-        let positions = []
-        for (let xi = 0; xi < count; xi++) {
-            for (let zi = 0; zi < count; zi++) {
-                let x = sep * (xi - count / 2);
-                let z = sep * (zi - count / 2);
-                let y = graph(x, z);
-                positions.push(x, y, z);
-            }
-        }
-        return new Float32Array(positions)
-    }, [count, sep, graph]);
+
 
     return (
         <BackgroundContainer>
             <Canvas >
-                <Points
-                >
-                    <bufferAttribute attachObject={['attributes', 'position']} count={positions.length / 3}
-                        itemSize={3} array={positions} />
-                    <pointsMaterial vertexColors />
-                    <Point color="red" />
-
-                </Points>
-                <OrbitControls />
+                <Camera />
+                <Suspense fallback={null}>
+                    <Stars radius={300} depth={60} count={10000} factor={7} saturation={0} fade={0.1} />
+                </Suspense>
             </Canvas>
         </BackgroundContainer>
     )
